@@ -1,0 +1,30 @@
+{
+  "efficiency_features": [
+    "N",
+    "P",
+    "K",
+    "temperature",
+    "humidity",
+    "ph",
+    "rainfall",
+    "thermal_delta",
+    "green_ratio"
+  ],
+  "deficiency_features": [
+    "N",
+    "P",
+    "K",
+    "temperature",
+    "humidity",
+    "ph",
+    "rainfall",
+    "thermal_delta",
+    "green_ratio"
+  ],
+  "deficiency_classes": [
+    "Balanced",
+    "K_deficient",
+    "N_deficient",
+    "P_deficient"
+  ]
+}

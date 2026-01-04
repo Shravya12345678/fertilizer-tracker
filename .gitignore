@@ -1,0 +1,9 @@
+# Ignore dependencies in all folders
+**/node_modules/
+
+# Ignore environment variables in all folders
+**/.env
+**/.env.local
+
+# Ignore OS files
+.DS_Store

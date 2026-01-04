@@ -1,0 +1,357 @@
+//1
+// const axios = require('axios');
+// const ThermalData = require('../models/ThermalData');
+// const Crop = require('../models/Crop');
+
+// // const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5001';
+// const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
+
+// const analyzeThermalData = async (req, res) => {
+//   try {
+//     const { thermalDataId } = req.params;
+
+//     const thermalData = await ThermalData.findById(thermalDataId)
+//       .populate('cropId', 'soilData cropType');
+
+//     if (!thermalData) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Thermal data not found'
+//       });
+//     }
+
+//     if (thermalData.userId.toString() !== req.user.id) {
+//       return res.status(403).json({
+//         success: false,
+//         message: 'Not authorized'
+//       });
+//     }
+
+//     const mlInput = {
+//       N: thermalData.cropId.soilData.N,
+//       P: thermalData.cropId.soilData.P,
+//       K: thermalData.cropId.soilData.K,
+//       temperature: thermalData.environmental.temperature,
+//       humidity: thermalData.environmental.humidity,
+//       ph: thermalData.cropId.soilData.pH,
+//       rainfall: thermalData.environmental.rainfall,
+//       thermal_delta: thermalData.thermalDelta,
+//       green_ratio: 0.7
+//     };
+
+//     console.log('Calling ML service...');
+//     const mlResponse = await axios.post(
+//       `${ML_SERVICE_URL}/api/predict`,
+//       mlInput,
+//       { timeout: 10000 }
+//     );
+
+//     if (!mlResponse.data.success) {
+//       throw new Error('ML prediction failed');
+//     }
+
+//     const mlResult = mlResponse.data;
+
+//     thermalData.analysis = {
+//       efficiencyScore: mlResult.efficiency_score,
+//       deficiencies: [mlResult.deficiency],
+//       recommendations: mlResult.recommendations.join('\n'),
+//       stressLevel: mlResult.stress_level
+//     };
+//     thermalData.processed = true;
+//     thermalData.processingDetails = {
+//       processedAt: new Date(),
+//       modelVersion: '1.0.0',
+//       confidence: mlResult.deficiency_probabilities[mlResult.deficiency] * 100
+//     };
+
+//     await thermalData.save();
+
+//     res.json({
+//       success: true,
+//       message: 'Analysis completed successfully',
+//       data: {
+//         thermalData,
+//         mlAnalysis: mlResult
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Analysis error:', error);
+    
+//     if (error.code === 'ECONNREFUSED') {
+//       return res.status(503).json({
+//         success: false,
+//         message: 'ML service is not available. Please ensure ML service is running on port 5001'
+//       });
+//     }
+
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error analyzing thermal data',
+//       error: error.message
+//     });
+//   }
+// };
+
+// module.exports = { analyzeThermalData };
+
+
+
+//2
+// const axios = require('axios');
+// const ThermalData = require('../models/ThermalData');
+// const Crop = require('../models/Crop');
+
+// const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
+
+// const analyzeThermalData = async (req, res) => {
+//   try {
+//     const { id } = req.params; // Using 'id' to match standard route params
+
+//     // 1. Fetch data using your original 'populate' logic
+//     const thermalData = await ThermalData.findById(id)
+//       .populate('cropId', 'soilData cropType');
+
+//     if (!thermalData) {
+//       return res.status(404).json({ success: false, message: 'Thermal data not found' });
+//     }
+
+//     if (thermalData.userId.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'Not authorized' });
+//     }
+
+//     // 2. Map data exactly as you had it
+//     const mlInput = {
+//       N: thermalData.cropId.soilData.N,
+//       P: thermalData.cropId.soilData.P,
+//       K: thermalData.cropId.soilData.K,
+//       temperature: thermalData.environmental.temperature,
+//       humidity: thermalData.environmental.humidity,
+//       ph: thermalData.cropId.soilData.pH,
+//       rainfall: thermalData.environmental.rainfall,
+//       thermal_delta: thermalData.thermalDelta,
+//       green_ratio: 0.7
+//     };
+
+//     console.log('📡 Calling ML service at:', `${ML_SERVICE_URL}/api/predict`);
+
+//     // 3. THE FIX: Increased timeout to 30 seconds
+//     const mlResponse = await axios.post(
+//       `${ML_SERVICE_URL}/api/predict`,
+//       mlInput,
+//       { timeout: 30000 } 
+//     );
+
+//     const mlResult = mlResponse.data;
+
+//     // 4. Update the record
+//     thermalData.analysis = {
+//       efficiencyScore: mlResult.efficiency_score,
+//       deficiencies: [mlResult.deficiency],
+//       // Safety: Join array if it's an array, or just use the string
+//       recommendations: Array.isArray(mlResult.recommendations) 
+//                        ? mlResult.recommendations.join('\n') 
+//                        : mlResult.recommendations,
+//       stressLevel: mlResult.stress_level
+//     };
+
+//     thermalData.processed = true;
+//     thermalData.processingDetails = {
+//       processedAt: new Date(),
+//       modelVersion: '1.0.0',
+//       // Safety: check if deficiency_probabilities exists
+//       confidence: mlResult.deficiency_probabilities 
+//                   ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
+//                   : 0
+//     };
+
+//     await thermalData.save();
+
+//     res.json({
+//       success: true,
+//       message: 'Analysis completed successfully',
+//       data: {
+//         thermalData,
+//         mlAnalysis: mlResult
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error('❌ Analysis error:', error.message);
+    
+//     // Handle the timeout specifically
+//     if (error.code === 'ECONNABORTED') {
+//       return res.status(504).json({
+//         success: false,
+//         message: 'The AI model took too long to respond. Please try again.'
+//       });
+//     }
+
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error analyzing thermal data',
+//       error: error.message
+//     });
+//   }
+// };
+
+// module.exports = { analyzeThermalData };
+
+const axios = require('axios');
+const ThermalData = require('../models/ThermalData');
+const Crop = require('../models/Crop');
+
+// Use the IPv4 address to ensure compatibility with your Python service
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
+
+const analyzeThermalData = async (req, res) => {
+  try {
+    // FIXED: Must match ':thermalDataId' from your analysis.js route
+    const { thermalDataId } = req.params;
+
+    console.log('🔍 Searching for Thermal Data ID:', thermalDataId);
+
+    // 1. Fetch data and populate crop info (NPK values)
+    const thermalData = await ThermalData.findById(thermalDataId)
+      .populate('cropId', 'soilData cropType');
+
+    if (!thermalData) {
+      console.log('❌ Data not found in Database');
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Thermal data not found' 
+      });
+    }
+
+    // Security check: ensure the data belongs to the logged-in user
+    if (thermalData.userId.toString() !== req.user.id) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Not authorized to analyze this data' 
+      });
+    }
+
+    // 2. Prepare the payload exactly as the Python AI expects it
+    const mlInput = {
+      N: thermalData.cropId.soilData.N,
+      P: thermalData.cropId.soilData.P,
+      K: thermalData.cropId.soilData.K,
+      temperature: thermalData.environmental.temperature,
+      humidity: thermalData.environmental.humidity,
+      ph: thermalData.cropId.soilData.pH,
+      rainfall: thermalData.environmental.rainfall,
+      thermal_delta: thermalData.thermalDelta,
+      green_ratio: 0.7 // Default for current testing phase
+    };
+    
+    console.log('📡 Sending to AI Service at:', `${ML_SERVICE_URL}/api/predict`);
+    
+    // 3. Call ML Service with explicit IPv4 family and timeout
+    const mlResponse = await axios.post(
+      `${ML_SERVICE_URL}/api/predict`,
+      mlInput,
+      { 
+        timeout: 30000,
+        family: 4 // <--- ADD THIS LINE. It forces Node to use IPv4.
+        } 
+      );
+
+    // 3. Call ML Service with explicit IPv4 family and timeout
+    // const mlResponse = await axios.post(
+    //   `${ML_SERVICE_URL}/api/predict`,
+    //   mlInput,
+    //   { 
+    //     timeout: 30000,
+    //     // This forces Node to use IPv4, solving the ECONNREFUSED on Windows
+    //     family: 4 
+    //   } 
+    // );
+
+    const mlResult = mlResponse.data;
+    console.log('🤖 AI Response Received successfully');
+
+    // 4. Update the record with results from the AI
+    thermalData.analysis = {
+      efficiencyScore: mlResult.efficiency_score,
+      deficiencies: [mlResult.deficiency],
+      // Handle both array or string recommendations
+      recommendations: Array.isArray(mlResult.recommendations) 
+                       ? mlResult.recommendations.join('\n') 
+                       : mlResult.recommendations,
+      stressLevel: mlResult.stress_level
+    };
+
+    thermalData.processed = true;
+    thermalData.processingDetails = {
+      processedAt: new Date(),
+      modelVersion: '1.0.0',
+      // Safely calculate confidence percentage
+      confidence: mlResult.deficiency_probabilities 
+                  ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
+                  : 0
+    };
+
+    await thermalData.save();
+
+    // 5. Final success response
+    res.json({
+      success: true,
+      message: 'Analysis completed successfully',
+      data: {
+        thermalData,
+        mlAnalysis: mlResult
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ ANALYSIS ERROR:', error.message);
+    
+    // Custom error for Service Timeouts
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({
+        success: false,
+        message: 'The AI model took too long to respond. Please try again.'
+      });
+    }
+
+    // Custom error for Python Service being offline
+    if (error.code === 'ECONNREFUSED') {
+      return res.status(503).json({
+        success: false,
+        message: 'ML Service is offline. Please check port 5001.'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error during thermal data analysis',
+      error: error.message
+    });
+  }
+};
+
+
+// @desc    Get all analyses for the logged-in user
+// @route   GET /api/analysis/history
+const getAnalysisHistory = async (req, res) => {
+  try {
+    const history = await ThermalData.find({ userId: req.user.id, processed: true })
+      .populate('cropId', 'cropName cropType')
+      .sort({ 'processingDetails.processedAt': -1 });
+
+    res.json({
+      success: true,
+      count: history.length,
+      data: history
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching analysis history',
+      error: error.message
+    });
+  }
+};
+
+// UPDATED EXPORTS: Make sure both functions are here!
+module.exports = { analyzeThermalData, getAnalysisHistory };
