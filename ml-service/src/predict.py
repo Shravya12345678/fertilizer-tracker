@@ -18,39 +18,61 @@ class FertilizerPredictor:
         self.deficiency_classes = None
         
         self.load_models()
+
+        def load_models(self):
+    # 1. Get the absolute path to the directory this file (predict.py) is in
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    def load_models(self):
-        """Load all trained models and preprocessors"""
-        print("Loading models...")
+    # 2. Go up one level to the 'ml-service' folder, then into 'trained_models'
+    models_dir = os.path.join(base_dir, '..', 'trained_models')
+    
+    try:
+        print("Loading models from:", models_dir)
         
-        try:
-            # Load models
-            self.efficiency_model = joblib.load(
-                os.path.join(self.models_dir, 'efficiency_model.pkl')
-            )
-            self.deficiency_model = joblib.load(
-                os.path.join(self.models_dir, 'deficiency_model.pkl')
-            )
+        # 3. Use the absolute path to load the file
+        model_path = os.path.join(models_dir, 'efficiency_model.pkl')
+        self.efficiency_model = joblib.load(model_path)
+        
+        # Repeat for your other model files...
+        # self.other_model = joblib.load(os.path.join(models_dir, 'other_file.pkl'))
+        
+        print("✅ Models loaded successfully!")
+    except Exception as e:
+        print(f"❌ Error loading models: {e}")
+        raise e
+    
+    # def load_models(self):
+    #     """Load all trained models and preprocessors"""
+    #     print("Loading models...")
+        
+    #     try:
+    #         # Load models
+    #         self.efficiency_model = joblib.load(
+    #             os.path.join(self.models_dir, 'efficiency_model.pkl')
+    #         )
+    #         self.deficiency_model = joblib.load(
+    #             os.path.join(self.models_dir, 'deficiency_model.pkl')
+    #         )
             
-            # Load preprocessors
-            self.scaler = joblib.load(
-                os.path.join(self.models_dir, 'scaler.pkl')
-            )
-            self.label_encoder = joblib.load(
-                os.path.join(self.models_dir, 'label_encoder.pkl')
-            )
+    #         # Load preprocessors
+    #         self.scaler = joblib.load(
+    #             os.path.join(self.models_dir, 'scaler.pkl')
+    #         )
+    #         self.label_encoder = joblib.load(
+    #             os.path.join(self.models_dir, 'label_encoder.pkl')
+    #         )
             
-            # Load model info
-            with open(os.path.join(self.models_dir, 'model_info.json'), 'r') as f:
-                model_info = json.load(f)
-                self.feature_names = model_info['efficiency_features']
-                self.deficiency_classes = model_info['deficiency_classes']
+    #         # Load model info
+    #         with open(os.path.join(self.models_dir, 'model_info.json'), 'r') as f:
+    #             model_info = json.load(f)
+    #             self.feature_names = model_info['efficiency_features']
+    #             self.deficiency_classes = model_info['deficiency_classes']
             
-            print("✅ Models loaded successfully!")
+    #         print("✅ Models loaded successfully!")
             
-        except Exception as e:
-            print(f"❌ Error loading models: {e}")
-            raise
+    #     except Exception as e:
+    #         print(f"❌ Error loading models: {e}")
+    #         raise
     
     def preprocess_input(self, input_data):
         """
