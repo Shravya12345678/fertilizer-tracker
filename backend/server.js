@@ -139,8 +139,9 @@ connectDB();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS.split(','),
-  credentials: true
+  origin: "https://fertilizer-tracker.vercel.app"
+  // origin: process.env.ALLOWED_ORIGINS.split(','),
+  // credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
