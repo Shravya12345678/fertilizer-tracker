@@ -10,7 +10,20 @@
     "load-dataset": "node scripts/loadDataset.js",
     "explore": "node scripts/exploreData.js"
   },
-  "keywords": ["agriculture", "fertilizer", "thermal", "api"],
+  "keywords": [
+    "agriculture",
+    "fertilizer",
+    "thermal",
+    "api"
+  ],
   "author": "Shravya",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^9.1.1",
+    "morgan": "^1.10.1"
+  }
 }
