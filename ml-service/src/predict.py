@@ -19,18 +19,17 @@ class FertilizerPredictor:
         
         self.load_models()
         
-        def load_models(self):
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            models_dir = os.path.join(base_dir, '..', 'trained_models')
-            
-            try:
-                print("Loading models from:", models_dir)
-                model_path = os.path.join(models_dir, 'efficiency_model.pkl')
-                self.efficiency_model = joblib.load(model_path)
-                print("✅ Models loaded successfully!")
-            except Exception as e:
-                    print(f"❌ Error loading models: {e}")
-                    raise e
+    def load_models(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        models_dir = os.path.join(base_dir, '..', 'trained_models')
+        try:
+            print("Loading models from:", models_dir)
+            model_path = os.path.join(models_dir, 'efficiency_model.pkl')
+            self.efficiency_model = joblib.load(model_path)
+            print("✅ Models loaded successfully!")
+        except Exception as e:
+            print(f"❌ Error loading models: {e}")
+            raise e
     
     # def load_models(self):
     #     """Load all trained models and preprocessors"""
