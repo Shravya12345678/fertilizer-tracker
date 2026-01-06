@@ -121,7 +121,7 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      {/* Recent Activity Table */}
+      {/* Recent  Activity Table */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Crops</h2>
         {recentCrops.length === 0 ? (
