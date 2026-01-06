@@ -136,13 +136,21 @@ const app = express();
 
 connectDB();
 
-// Middleware
 app.use(helmet());
 app.use(cors({
-  origin: "https://fertilizer-tracker.vercel.app"
-  // origin: process.env.ALLOWED_ORIGINS.split(','),
-  // credentials: true
+  // This allows you to set multiple URLs in the Render dashboard
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : "http://localhost:3000",
+  credentials: true
 }));
+
+// Middleware
+// app.use(helmet());
+// app.use(cors({
+//   origin: "https://fertilizer-tracker.vercel.app"
+//   // origin: process.env.ALLOWED_ORIGINS.split(','),
+//   // credentials: true
+// }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('dev'));
