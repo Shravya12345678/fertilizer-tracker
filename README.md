@@ -167,8 +167,8 @@ POST /analysis/thermal/:id - Analyze thermal data
 3. Get connection string
 
 ## 📸 Screenshots
-
-[Add your screenshots here]
+![signin](https://github.com/user-attachments/assets/38969359-e046-4fbe-9e3e-9b649c64ea8f)
+![ignup](https://github.com/user-attachments/assets/b07558f9-890e-4c16-892c-51099687b882)
 
 ## 🤝 Contributing
 
@@ -185,9 +185,9 @@ This project is licensed under the MIT License.
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
+- GitHub: [@yourusername](https://github.com/Shravya12345678)
+- LinkedIn: [Your LinkedIn](https://www.linkedin.com/in/shravya-shetty04/)
+- Email: shravya2004n@gmail.com
 
 ## 🙏 Acknowledgments
 
