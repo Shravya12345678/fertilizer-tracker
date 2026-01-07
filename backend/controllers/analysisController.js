@@ -197,21 +197,181 @@
 
 // module.exports = { analyzeThermalData };
 
+// const axios = require('axios');
+// const ThermalData = require('../models/ThermalData');
+// const Crop = require('../models/Crop');
+
+// // Use the IPv4 address to ensure compatibility with your Python service
+// const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
+
+// const analyzeThermalData = async (req, res) => {
+//   try {
+//     // FIXED: Must match ':thermalDataId' from your analysis.js route
+//     const { thermalDataId } = req.params;
+
+//     console.log('🔍 Searching for Thermal Data ID:', thermalDataId);
+
+//     // 1. Fetch data and populate crop info (NPK values)
+//     const thermalData = await ThermalData.findById(thermalDataId)
+//       .populate('cropId', 'soilData cropType');
+
+//     if (!thermalData) {
+//       console.log('❌ Data not found in Database');
+//       return res.status(404).json({ 
+//         success: false, 
+//         message: 'Thermal data not found' 
+//       });
+//     }
+
+//     // Security check: ensure the data belongs to the logged-in user
+//     if (thermalData.userId.toString() !== req.user.id) {
+//       return res.status(403).json({ 
+//         success: false, 
+//         message: 'Not authorized to analyze this data' 
+//       });
+//     }
+
+//     // 2. Prepare the payload exactly as the Python AI expects it
+//     const mlInput = {
+//       N: thermalData.cropId.soilData.N,
+//       P: thermalData.cropId.soilData.P,
+//       K: thermalData.cropId.soilData.K,
+//       temperature: thermalData.environmental.temperature,
+//       humidity: thermalData.environmental.humidity,
+//       ph: thermalData.cropId.soilData.pH,
+//       rainfall: thermalData.environmental.rainfall,
+//       thermal_delta: thermalData.thermalDelta,
+//       green_ratio: 0.7 // Default for current testing phase
+//     };
+    
+//     console.log('📡 Sending to AI Service at:', `${ML_SERVICE_URL}/api/predict`);
+    
+//     // 3. Call ML Service with explicit IPv4 family and timeout
+//     const mlResponse = await axios.post(
+//       `${ML_SERVICE_URL}/api/predict`,
+//       mlInput,
+//       { 
+//         timeout: 30000,
+//         family: 4 // <--- ADD THIS LINE. It forces Node to use IPv4.
+//         } 
+//       );
+
+//     // 3. Call ML Service with explicit IPv4 family and timeout
+//     // const mlResponse = await axios.post(
+//     //   `${ML_SERVICE_URL}/api/predict`,
+//     //   mlInput,
+//     //   { 
+//     //     timeout: 30000,
+//     //     // This forces Node to use IPv4, solving the ECONNREFUSED on Windows
+//     //     family: 4 
+//     //   } 
+//     // );
+
+//     const mlResult = mlResponse.data;
+//     console.log('🤖 AI Response Received successfully');
+
+//     // 4. Update the record with results from the AI
+//     thermalData.analysis = {
+//       efficiencyScore: mlResult.efficiency_score,
+//       deficiencies: [mlResult.deficiency],
+//       // Handle both array or string recommendations
+//       recommendations: Array.isArray(mlResult.recommendations) 
+//                        ? mlResult.recommendations.join('\n') 
+//                        : mlResult.recommendations,
+//       stressLevel: mlResult.stress_level
+//     };
+
+//     thermalData.processed = true;
+//     thermalData.processingDetails = {
+//       processedAt: new Date(),
+//       modelVersion: '1.0.0',
+//       // Safely calculate confidence percentage
+//       confidence: mlResult.deficiency_probabilities 
+//                   ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
+//                   : 0
+//     };
+
+//     await thermalData.save();
+
+//     // 5. Final success response
+//     res.json({
+//       success: true,
+//       message: 'Analysis completed successfully',
+//       data: {
+//         thermalData,
+//         mlAnalysis: mlResult
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error('❌ ANALYSIS ERROR:', error.message);
+    
+//     // Custom error for Service Timeouts
+//     if (error.code === 'ECONNABORTED') {
+//       return res.status(504).json({
+//         success: false,
+//         message: 'The AI model took too long to respond. Please try again.'
+//       });
+//     }
+
+//     // Custom error for Python Service being offline
+//     if (error.code === 'ECONNREFUSED') {
+//       return res.status(503).json({
+//         success: false,
+//         message: 'ML Service is offline. Please check port 5001.'
+//       });
+//     }
+
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error during thermal data analysis',
+//       error: error.message
+//     });
+//   }
+// };
+
+
+// // @desc    Get all analyses for the logged-in user
+// // @route   GET /api/analysis/history
+// const getAnalysisHistory = async (req, res) => {
+//   try {
+//     const history = await ThermalData.find({ userId: req.user.id, processed: true })
+//       .populate('cropId', 'cropName cropType')
+//       .sort({ 'processingDetails.processedAt': -1 });
+
+//     res.json({
+//       success: true,
+//       count: history.length,
+//       data: history
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error fetching analysis history',
+//       error: error.message
+//     });
+//   }
+// };
+
+// // UPDATED EXPORTS: Make sure both functions are here!
+// module.exports = { analyzeThermalData, getAnalysisHistory };
+
+
 const axios = require('axios');
 const ThermalData = require('../models/ThermalData');
 const Crop = require('../models/Crop');
 
-// Use the IPv4 address to ensure compatibility with your Python service
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
-
+/**
+ * @desc    Analyze thermal data using the Python ML service
+ * @route   POST /api/analysis/thermal/:thermalDataId
+ */
 const analyzeThermalData = async (req, res) => {
   try {
-    // FIXED: Must match ':thermalDataId' from your analysis.js route
     const { thermalDataId } = req.params;
 
     console.log('🔍 Searching for Thermal Data ID:', thermalDataId);
 
-    // 1. Fetch data and populate crop info (NPK values)
+    // 1. Fetch data and populate crop info (to get NPK and pH values)
     const thermalData = await ThermalData.findById(thermalDataId)
       .populate('cropId', 'soilData cropType');
 
@@ -232,6 +392,7 @@ const analyzeThermalData = async (req, res) => {
     }
 
     // 2. Prepare the payload exactly as the Python AI expects it
+    // Note: Python ML models are very sensitive to field names (N, P, K, etc.)
     const mlInput = {
       N: thermalData.cropId.soilData.N,
       P: thermalData.cropId.soilData.P,
@@ -241,43 +402,36 @@ const analyzeThermalData = async (req, res) => {
       ph: thermalData.cropId.soilData.pH,
       rainfall: thermalData.environmental.rainfall,
       thermal_delta: thermalData.thermalDelta,
-      green_ratio: 0.7 // Default for current testing phase
+      green_ratio: 0.7 // Default ratio for current thermal-only analysis
     };
+
+    // Use the Render URL from Env Vars, or fallback to local port 5001 for development
+    const ML_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
     
-    console.log('📡 Sending to AI Service at:', `${ML_SERVICE_URL}/api/predict`);
-    
-    // 3. Call ML Service with explicit IPv4 family and timeout
+    console.log('📡 Sending request to AI Service at:', `${ML_URL}/api/predict`);
+
+    // 3. Call ML Service
+    // Increased timeout to 45s to account for Render Free Tier "spinning up"
     const mlResponse = await axios.post(
-      `${ML_SERVICE_URL}/api/predict`,
+      `${ML_URL}/api/predict`,
       mlInput,
       { 
-        timeout: 30000,
-        family: 4 // <--- ADD THIS LINE. It forces Node to use IPv4.
-        } 
-      );
-
-    // 3. Call ML Service with explicit IPv4 family and timeout
-    // const mlResponse = await axios.post(
-    //   `${ML_SERVICE_URL}/api/predict`,
-    //   mlInput,
-    //   { 
-    //     timeout: 30000,
-    //     // This forces Node to use IPv4, solving the ECONNREFUSED on Windows
-    //     family: 4 
-    //   } 
-    // );
+        timeout: 45000, 
+        family: 4 // Forces IPv4 to prevent connection issues on Render/Localhost
+      }
+    );
 
     const mlResult = mlResponse.data;
     console.log('🤖 AI Response Received successfully');
 
-    // 4. Update the record with results from the AI
+    // 4. Update the MongoDB record with results from the AI
     thermalData.analysis = {
       efficiencyScore: mlResult.efficiency_score,
       deficiencies: [mlResult.deficiency],
-      // Handle both array or string recommendations
+      // Safely handle both array and string recommendations
       recommendations: Array.isArray(mlResult.recommendations) 
-                       ? mlResult.recommendations.join('\n') 
-                       : mlResult.recommendations,
+                        ? mlResult.recommendations.join('\n') 
+                        : mlResult.recommendations,
       stressLevel: mlResult.stress_level
     };
 
@@ -285,7 +439,7 @@ const analyzeThermalData = async (req, res) => {
     thermalData.processingDetails = {
       processedAt: new Date(),
       modelVersion: '1.0.0',
-      // Safely calculate confidence percentage
+      // Calculate confidence percentage if probabilities are provided
       confidence: mlResult.deficiency_probabilities 
                   ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
                   : 0
@@ -293,7 +447,7 @@ const analyzeThermalData = async (req, res) => {
 
     await thermalData.save();
 
-    // 5. Final success response
+    // 5. Success response to Frontend
     res.json({
       success: true,
       message: 'Analysis completed successfully',
@@ -306,19 +460,19 @@ const analyzeThermalData = async (req, res) => {
   } catch (error) {
     console.error('❌ ANALYSIS ERROR:', error.message);
     
-    // Custom error for Service Timeouts
+    // Check if the error is a timeout (common on Render Free Tier)
     if (error.code === 'ECONNABORTED') {
       return res.status(504).json({
         success: false,
-        message: 'The AI model took too long to respond. Please try again.'
+        message: 'The AI model took too long to respond. It may be starting up. Please try again in 30 seconds.'
       });
     }
 
-    // Custom error for Python Service being offline
+    // Check if the ML service is completely unreachable
     if (error.code === 'ECONNREFUSED') {
       return res.status(503).json({
         success: false,
-        message: 'ML Service is offline. Please check port 5001.'
+        message: 'ML Service is currently offline or the URL is incorrect.'
       });
     }
 
@@ -330,9 +484,10 @@ const analyzeThermalData = async (req, res) => {
   }
 };
 
-
-// @desc    Get all analyses for the logged-in user
-// @route   GET /api/analysis/history
+/**
+ * @desc    Get all completed analyses for the logged-in user
+ * @route   GET /api/analysis/history
+ */
 const getAnalysisHistory = async (req, res) => {
   try {
     const history = await ThermalData.find({ userId: req.user.id, processed: true })
@@ -353,5 +508,4 @@ const getAnalysisHistory = async (req, res) => {
   }
 };
 
-// UPDATED EXPORTS: Make sure both functions are here!
 module.exports = { analyzeThermalData, getAnalysisHistory };
