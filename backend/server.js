@@ -161,7 +161,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors());
+// app.options('*', cors());
 
 // app.use(cors({
 //   // This allows you to set multiple URLs in the Render dashboard
