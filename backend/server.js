@@ -130,6 +130,12 @@ const morgan = require('morgan');
 const path = require('path');
 require('dotenv').config();
 
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim()) 
+  : ['http://localhost:3000'];
+
+
 const connectDB = require('./config/db');
 
 const app = express();
@@ -137,11 +143,31 @@ const app = express();
 connectDB();
 
 app.use(helmet());
+
 app.use(cors({
-  // This allows you to set multiple URLs in the Render dashboard
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : "http://localhost:3000",
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS: ", origin); // This will show in your Render logs!
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.options('*', cors());
+
+// app.use(cors({
+//   // This allows you to set multiple URLs in the Render dashboard
+//   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : "http://localhost:3000",
+//   credentials: true
+// }));
 
 
 // Middleware
