@@ -53,8 +53,8 @@ import axios from 'axios';
 // const API_BASE_URL = 'http://localhost:5000/api';
 // const API_BASE_URL = "https://fertilizer-backend.onrender.com"
 // const API_BASE_URL = process.env.REACT_APP_API_URL || "https://fertilizer-backend-u25f.onrender.com";
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "https://fertilizer-backend-u25f.onrender.com/api";
+const API_BASE_URL = "https://fertilizer-backend-u25f.onrender.com/api";
+// const API_BASE_URL = process.env.REACT_APP_API_URL || "https://fertilizer-backend-u25f.onrender.com/api";
 // const API_BASE_URL = process.env.NODE_ENV === 'production' 
 //   ? 'https://your-backend-api.onrender.com' // Replace with your live backend URL later
 //   : 'http://localhost:5000';
