@@ -1135,130 +1135,130 @@
 
 // export default AnalysisResults;
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, Download, Send, ImageIcon, Thermometer, Info } from 'lucide-react';
-import { thermalAPI } from '../../services/api';
-import { toast } from 'react-toastify';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// import React, { useState, useEffect } from 'react';
+// import { useParams, useNavigate } from 'react-router-dom';
+// import { ArrowLeft, Loader2, Download, Send, ImageIcon, Thermometer, Info } from 'lucide-react';
+// import { thermalAPI } from '../../services/api';
+// import { toast } from 'react-toastify';
+// import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+// import jsPDF from 'jspdf';
+// import autoTable from 'jspdf-autotable';
 
-const AnalysisResults = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+// const AnalysisResults = () => {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+//   const [data, setData] = useState(null);
+//   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchResults = async () => {
-      try {
-        const res = await thermalAPI.getOne(id);
-        const thermalData = res.data?.data?.thermalData || res.data?.data;
-        setData(thermalData);
-      } catch (err) {
-        toast.error("Failed to load analysis");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchResults();
-  }, [id]);
+//   useEffect(() => {
+//     const fetchResults = async () => {
+//       try {
+//         const res = await thermalAPI.getOne(id);
+//         const thermalData = res.data?.data?.thermalData || res.data?.data;
+//         setData(thermalData);
+//       } catch (err) {
+//         toast.error("Failed to load analysis");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchResults();
+//   }, [id]);
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Field Analysis Report", 14, 20);
-    autoTable(doc, {
-      startY: 30,
-      body: [
-        ["Metric", "Value"],
-        ["Efficiency Score", `${data?.analysis?.efficiencyScore}%`],
-        ["Stress Level", data?.analysis?.stressLevel?.toUpperCase()],
-        ["Nutrient Status", data?.analysis?.deficiencies[0]]
-      ],
-    });
-    doc.save(`Analysis_${id.substring(0, 8)}.pdf`);
-  };
+//   const downloadPDF = () => {
+//     const doc = new jsPDF();
+//     doc.setFontSize(18);
+//     doc.text("Field Analysis Report", 14, 20);
+//     autoTable(doc, {
+//       startY: 30,
+//       body: [
+//         ["Metric", "Value"],
+//         ["Efficiency Score", `${data?.analysis?.efficiencyScore}%`],
+//         ["Stress Level", data?.analysis?.stressLevel?.toUpperCase()],
+//         ["Nutrient Status", data?.analysis?.deficiencies[0]]
+//       ],
+//     });
+//     doc.save(`Analysis_${id.substring(0, 8)}.pdf`);
+//   };
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <Loader2 className="animate-spin text-green-600 mb-2" size={40} />
-      <p className="text-gray-500">Generating AI Insights...</p>
-    </div>
-  );
+//   if (loading) return (
+//     <div className="flex flex-col items-center justify-center py-20">
+//       <Loader2 className="animate-spin text-green-600 mb-2" size={40} />
+//       <p className="text-gray-500">Generating AI Insights...</p>
+//     </div>
+//   );
 
-  // Data for the Recharts BarChart
-  const chartData = [
-    { name: 'Efficiency', score: data?.analysis?.efficiencyScore || 0 },
-    { name: 'Average', score: 65 }
-  ];
+//   // Data for the Recharts BarChart
+//   const chartData = [
+//     { name: 'Efficiency', score: data?.analysis?.efficiencyScore || 0 },
+//     { name: 'Average', score: 65 }
+//   ];
 
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-green-600">
-          <ArrowLeft size={18} /> Back to Crops
-        </button>
-        <div className="flex gap-3">
-          <button onClick={() => toast.info("Sharing feature coming soon")} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
-            <Send size={16} /> Share
-          </button>
-          <button onClick={downloadPDF} className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
-            <Download size={16} /> Download PDF
-          </button>
-        </div>
-      </div>
+//   return (
+//     <div className="max-w-6xl mx-auto p-6">
+//       <div className="flex justify-between items-center mb-8">
+//         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-green-600">
+//           <ArrowLeft size={18} /> Back to Crops
+//         </button>
+//         <div className="flex gap-3">
+//           <button onClick={() => toast.info("Sharing feature coming soon")} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+//             <Send size={16} /> Share
+//           </button>
+//           <button onClick={downloadPDF} className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+//             <Download size={16} /> Download PDF
+//           </button>
+//         </div>
+//       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* HEATMAP CARD */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <ImageIcon size={20} className="text-green-600" /> Thermal Visualization
-          </h3>
-          <div className="aspect-video bg-gray-50 rounded-xl border border-dashed flex items-center justify-center overflow-hidden">
-            {data?.analysis?.heatmapImage ? (
-              <img 
-                src={data.analysis.heatmapImage} 
-                alt="Thermal Map" 
-                className="w-full h-full object-cover" 
-              />
-            ) : (
-              <div className="text-center text-gray-400">
-                <Info size={32} className="mx-auto mb-2 opacity-20" />
-                <p>No map generated for this scan</p>
-              </div>
-            )}
-          </div>
-        </div>
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+//         {/* HEATMAP CARD */}
+//         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+//           <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+//             <ImageIcon size={20} className="text-green-600" /> Thermal Visualization
+//           </h3>
+//           <div className="aspect-video bg-gray-50 rounded-xl border border-dashed flex items-center justify-center overflow-hidden">
+//             {data?.analysis?.heatmapImage ? (
+//               <img 
+//                 src={data.analysis.heatmapImage} 
+//                 alt="Thermal Map" 
+//                 className="w-full h-full object-cover" 
+//               />
+//             ) : (
+//               <div className="text-center text-gray-400">
+//                 <Info size={32} className="mx-auto mb-2 opacity-20" />
+//                 <p>No map generated for this scan</p>
+//               </div>
+//             )}
+//           </div>
+//         </div>
 
-        {/* EFFICIENCY CHART CARD */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Thermometer size={20} className="text-orange-500" /> Efficiency Analysis
-          </h3>
-          {/* FIX: Wrapper div MUST have an explicit height (h-[250px]) */}
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="score" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+//         {/* EFFICIENCY CHART CARD */}
+//         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+//           <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+//             <Thermometer size={20} className="text-orange-500" /> Efficiency Analysis
+//           </h3>
+//           {/* FIX: Wrapper div MUST have an explicit height (h-[250px]) */}
+//           <div className="h-[250px] w-full">
+//             <ResponsiveContainer width="100%" height="100%">
+//               <BarChart data={chartData}>
+//                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
+//                 <XAxis dataKey="name" />
+//                 <YAxis />
+//                 <Tooltip />
+//                 <Bar dataKey="score" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={40} />
+//               </BarChart>
+//             </ResponsiveContainer>
+//           </div>
+//         </div>
+//       </div>
 
-      {/* AI RECOMMENDATION BOX */}
-      <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-xl">
-        <h4 className="font-bold text-green-800 mb-1">AI Smart Recommendation</h4>
-        <p className="text-green-700 italic">"{data?.analysis?.recommendations || "Analysis complete. Maintain current irrigation schedule."}"</p>
-      </div>
-    </div>
-  );
-};
+//       {/* AI RECOMMENDATION BOX */}
+//       <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-xl">
+//         <h4 className="font-bold text-green-800 mb-1">AI Smart Recommendation</h4>
+//         <p className="text-green-700 italic">"{data?.analysis?.recommendations || "Analysis complete. Maintain current irrigation schedule."}"</p>
+//       </div>
+//     </div>
+//   );
+// };
 
-export default AnalysisResults;
+// export default AnalysisResults;
