@@ -1262,3 +1262,119 @@
 // };
 
 // export default AnalysisResults;
+
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Loader2, Download, Send, ImageIcon, Info } from 'lucide-react';
+import { thermalAPI } from '../../services/api';
+import { toast } from 'react-toastify';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+const AnalysisResults = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const res = await thermalAPI.getOne(id);
+        const thermalData = res.data?.data?.thermalData || res.data?.data;
+        setData(thermalData);
+      } catch (err) {
+        toast.error("Failed to load analysis");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, [id]);
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Field Analysis Report", 14, 20);
+    autoTable(doc, {
+      startY: 30,
+      body: [
+        ["Metric", "Value"],
+        ["Efficiency Score", `${data?.analysis?.efficiencyScore}%`],
+        ["Stress Level", data?.analysis?.stressLevel?.toUpperCase()],
+        ["Nutrient Status", data?.analysis?.deficiencies[0]]
+      ],
+    });
+    doc.save(`Analysis_${id.substring(0, 8)}.pdf`);
+  };
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <Loader2 className="animate-spin text-green-600 mb-2" size={40} />
+      <p className="text-gray-500">Generating AI Insights...</p>
+    </div>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      {/* HEADER SECTION */}
+      <div className="flex justify-between items-center mb-8">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-green-600">
+          <ArrowLeft size={18} /> Back to Crops
+        </button>
+        <div className="flex gap-3">
+          <button onClick={() => toast.info("Sharing feature coming soon")} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+            <Send size={16} /> Share
+          </button>
+          <button onClick={downloadPDF} className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm">
+            <Download size={16} /> Download PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-8 mb-8">
+        {/* HEATMAP CARD - Now full width and more prominent */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-xl text-gray-800 flex items-center gap-2">
+              <ImageIcon size={24} className="text-green-600" /> Thermal Visualization
+            </h3>
+            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+              Efficiency: {data?.analysis?.efficiencyScore}%
+            </div>
+          </div>
+          
+          <div className="aspect-video bg-gray-50 rounded-xl border border-dashed flex items-center justify-center overflow-hidden shadow-inner">
+            {data?.analysis?.heatmapImage ? (
+              <img 
+                src={data.analysis.heatmapImage} 
+                alt="Thermal Map" 
+                className="w-full h-full object-contain" 
+              />
+            ) : (
+              <div className="text-center text-gray-400">
+                <Info size={32} className="mx-auto mb-2 opacity-20" />
+                <p>No map generated for this scan</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* AI RECOMMENDATION BOX */}
+        <div className="bg-green-50 border-l-4 border-green-500 p-8 rounded-xl shadow-sm">
+          <h4 className="font-bold text-xl text-green-800 mb-2">AI Smart Recommendation</h4>
+          <p className="text-green-700 text-lg italic leading-relaxed">
+            "{data?.analysis?.recommendations || "Analysis complete. Maintain current irrigation schedule."}"
+          </p>
+          <div className="mt-4 flex gap-4 text-sm text-green-600 font-medium">
+             <span>• Stress Level: <b>{data?.analysis?.stressLevel}</b></span>
+             <span>• Primary Finding: <b>{data?.analysis?.deficiencies[0]}</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AnalysisResults;
