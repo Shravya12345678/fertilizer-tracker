@@ -613,6 +613,14 @@ import joblib
 import numpy as np
 import json
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+import io
+import base64
+
+# Use a non-interactive backend for matplotlib to prevent crashes on servers
+import matplotlib
+matplotlib.use('Agg')
 
 class FertilizerPredictor:
     def __init__(self, models_dir='../trained_models'):
@@ -621,6 +629,7 @@ class FertilizerPredictor:
         self.scaler = None
         self.label_encoder = None
         self.feature_names = None
+        self.deficiency_classes = None
         
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.models_path = os.path.join(base_dir, '..', 'trained_models')
@@ -636,43 +645,54 @@ class FertilizerPredictor:
             with open(os.path.join(self.models_path, 'model_info.json'), 'r') as f:
                 model_info = json.load(f)
                 self.feature_names = model_info['efficiency_features']
-            print("✅ AI Prediction Engine Ready (No Visualization)")
+                self.deficiency_classes = model_info['deficiency_classes']
+            print("✅ ML Models Loaded Successfully")
         except Exception as e:
             print(f"❌ Load Error: {str(e)}")
 
+    def generate_heatmap_base64(self, delta):
+        """Creates a thermal stress heatmap and returns it as a Base64 string"""
+        # Create synthetic 10x10 field data based on the thermal delta
+        data = np.random.randn(10, 10) * 0.5 + (25 + delta)
+        
+        plt.figure(figsize=(5, 4))
+        # RdYlGn_r: Red (High Stress) to Green (Healthy)
+        sns.heatmap(data, cmap='RdYlGn_r', cbar=True, xticklabels=False, yticklabels=False)
+        plt.title(f"Thermal Stress Map (Δ {delta}°C)")
+        
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+        plt.close() # Important to prevent memory leaks
+        buf.seek(0)
+        
+        img_str = base64.b64encode(buf.read()).decode('utf-8')
+        return f"data:image/png;base64,{img_str}"
+
     def predict_all(self, input_data):
         try:
-            # Prepare feature vector
+            # Prepare data
             features = [input_data[name] for name in self.feature_names]
             features_scaled = self.scaler.transform([features])
             
-            # Predict Efficiency and Deficiency
+            # Predict
             eff_score = float(self.efficiency_model.predict(features_scaled)[0])
-            eff_score = max(0, min(100, eff_score)) # Clamp to 0-100 range
+            eff_score = max(0, min(100, eff_score)) # Clamp 0-100
             
             def_idx = self.deficiency_model.predict(features_scaled)[0]
             deficiency = self.label_encoder.inverse_transform([def_idx])[0]
             
-            # Categorize Stress Level
-            stress = 'low' if eff_score > 75 else 'medium' if eff_score > 50 else 'high'
+            # Generate Heatmap
+            heatmap = self.generate_heatmap_base64(input_data.get('thermal_delta', 0))
             
             return {
                 'success': True,
                 'efficiency_score': round(eff_score, 2),
                 'deficiency': deficiency,
-                'stress_level': stress,
-                'recommendations': self.generate_text_recommendation(eff_score, deficiency)
+                'heatmap_image': heatmap,
+                'recommendations': f"Apply specific fertilizer for {deficiency.replace('_', ' ')}.",
+                'stress_level': 'high' if eff_score < 50 else 'medium' if eff_score < 75 else 'low'
             }
         except Exception as e:
             return {'success': False, 'error': str(e)}
-
-    def generate_text_recommendation(self, score, label):
-        diagnosis = label.replace('_', ' ')
-        if score < 55:
-            return f"Critical {diagnosis} detected. Fertilizer uptake is extremely low. Check soil pH and irrigation immediately."
-        elif score < 75:
-            return f"Moderate {diagnosis} observed. Efficiency is sub-optimal. Consider a secondary micro-nutrient application."
-        else:
-            return f"Conditions are stable. {diagnosis} is within manageable limits. Continue current schedule."
 
 
