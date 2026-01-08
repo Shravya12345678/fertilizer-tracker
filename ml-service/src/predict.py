@@ -609,90 +609,138 @@
 #         return " ".join(recs)
 
 
-import joblib
-import numpy as np
-import json
-import os
-import matplotlib.pyplot as plt
-import seaborn as sns
-import io
-import base64
+# import joblib
+# import numpy as np
+# import json
+# import os
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# import io
+# import base64
 
-# Use a non-interactive backend for matplotlib to prevent crashes on servers
-import matplotlib
-matplotlib.use('Agg')
+# # Use a non-interactive backend for matplotlib to prevent crashes on servers
+# import matplotlib
+# matplotlib.use('Agg')
+
+# class FertilizerPredictor:
+#     def __init__(self, models_dir='../trained_models'):
+#         self.efficiency_model = None
+#         self.deficiency_model = None
+#         self.scaler = None
+#         self.label_encoder = None
+#         self.feature_names = None
+#         self.deficiency_classes = None
+        
+#         base_dir = os.path.dirname(os.path.abspath(__file__))
+#         self.models_path = os.path.join(base_dir, '..', 'trained_models')
+#         self.load_models()
+        
+#     def load_models(self):
+#         try:
+#             self.efficiency_model = joblib.load(os.path.join(self.models_path, 'efficiency_model.pkl'))
+#             self.deficiency_model = joblib.load(os.path.join(self.models_path, 'deficiency_model.pkl'))
+#             self.scaler = joblib.load(os.path.join(self.models_path, 'scaler.pkl'))
+#             self.label_encoder = joblib.load(os.path.join(self.models_path, 'label_encoder.pkl'))
+            
+#             with open(os.path.join(self.models_path, 'model_info.json'), 'r') as f:
+#                 model_info = json.load(f)
+#                 self.feature_names = model_info['efficiency_features']
+#                 self.deficiency_classes = model_info['deficiency_classes']
+#             print("✅ ML Models Loaded Successfully")
+#         except Exception as e:
+#             print(f"❌ Load Error: {str(e)}")
+
+#     def generate_heatmap_base64(self, delta):
+#         """Creates a thermal stress heatmap and returns it as a Base64 string"""
+#         # Create synthetic 10x10 field data based on the thermal delta
+#         data = np.random.randn(10, 10) * 0.5 + (25 + delta)
+        
+#         plt.figure(figsize=(5, 4))
+#         # RdYlGn_r: Red (High Stress) to Green (Healthy)
+#         sns.heatmap(data, cmap='RdYlGn_r', cbar=True, xticklabels=False, yticklabels=False)
+#         plt.title(f"Thermal Stress Map (Δ {delta}°C)")
+        
+#         buf = io.BytesIO()
+#         plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+#         plt.close() # Important to prevent memory leaks
+#         buf.seek(0)
+        
+#         img_str = base64.b64encode(buf.read()).decode('utf-8')
+#         return f"data:image/png;base64,{img_str}"
+
+#     def predict_all(self, input_data):
+#         try:
+#             # Prepare data
+#             features = [input_data[name] for name in self.feature_names]
+#             features_scaled = self.scaler.transform([features])
+            
+#             # Predict
+#             eff_score = float(self.efficiency_model.predict(features_scaled)[0])
+#             eff_score = max(0, min(100, eff_score)) # Clamp 0-100
+            
+#             def_idx = self.deficiency_model.predict(features_scaled)[0]
+#             deficiency = self.label_encoder.inverse_transform([def_idx])[0]
+            
+#             # Generate Heatmap
+#             heatmap = self.generate_heatmap_base64(input_data.get('thermal_delta', 0))
+            
+#             return {
+#                 'success': True,
+#                 'efficiency_score': round(eff_score, 2),
+#                 'deficiency': deficiency,
+#                 'heatmap_image': heatmap,
+#                 'recommendations': f"Apply specific fertilizer for {deficiency.replace('_', ' ')}.",
+#                 'stress_level': 'high' if eff_score < 50 else 'medium' if eff_score < 75 else 'low'
+#             }
+#         except Exception as e:
+#             return {'success': False, 'error': str(e)}
+
+
+import joblib
+import pandas as pd
+import numpy as np
+import os
 
 class FertilizerPredictor:
-    def __init__(self, models_dir='../trained_models'):
-        self.efficiency_model = None
-        self.deficiency_model = None
-        self.scaler = None
-        self.label_encoder = None
-        self.feature_names = None
-        self.deficiency_classes = None
+    def __init__(self):
+        # Load models and scaler - ensure these files exist in your folder!
+        self.scaler = joblib.load('scaler.joblib')
+        self.efficiency_model = joblib.load('efficiency_model.joblib')
+        self.deficiency_model = joblib.load('deficiency_model.joblib')
         
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.models_path = os.path.join(base_dir, '..', 'trained_models')
-        self.load_models()
+        # Define features in the EXACT order used during training
+        self.feature_names = [
+            'Nitrogen', 'Phosphorus', 'Potassium', 
+            'Temperature', 'Humidity', 'pH', 'Rainfall'
+        ]
         
-    def load_models(self):
-        try:
-            self.efficiency_model = joblib.load(os.path.join(self.models_path, 'efficiency_model.pkl'))
-            self.deficiency_model = joblib.load(os.path.join(self.models_path, 'deficiency_model.pkl'))
-            self.scaler = joblib.load(os.path.join(self.models_path, 'scaler.pkl'))
-            self.label_encoder = joblib.load(os.path.join(self.models_path, 'label_encoder.pkl'))
-            
-            with open(os.path.join(self.models_path, 'model_info.json'), 'r') as f:
-                model_info = json.load(f)
-                self.feature_names = model_info['efficiency_features']
-                self.deficiency_classes = model_info['deficiency_classes']
-            print("✅ ML Models Loaded Successfully")
-        except Exception as e:
-            print(f"❌ Load Error: {str(e)}")
+        # Define classes for the deficiency model
+        self.deficiency_classes = self.deficiency_model.classes_
 
-    def generate_heatmap_base64(self, delta):
-        """Creates a thermal stress heatmap and returns it as a Base64 string"""
-        # Create synthetic 10x10 field data based on the thermal delta
-        data = np.random.randn(10, 10) * 0.5 + (25 + delta)
-        
-        plt.figure(figsize=(5, 4))
-        # RdYlGn_r: Red (High Stress) to Green (Healthy)
-        sns.heatmap(data, cmap='RdYlGn_r', cbar=True, xticklabels=False, yticklabels=False)
-        plt.title(f"Thermal Stress Map (Δ {delta}°C)")
-        
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-        plt.close() # Important to prevent memory leaks
-        buf.seek(0)
-        
-        img_str = base64.b64encode(buf.read()).decode('utf-8')
-        return f"data:image/png;base64,{img_str}"
-
-    def predict_all(self, input_data):
+    def predict_all(self, data):
+        """
+        Takes a dictionary of input data, scales it, 
+        and returns predictions for both models.
+        """
         try:
-            # Prepare data
-            features = [input_data[name] for name in self.feature_names]
-            features_scaled = self.scaler.transform([features])
-            
-            # Predict
-            eff_score = float(self.efficiency_model.predict(features_scaled)[0])
-            eff_score = max(0, min(100, eff_score)) # Clamp 0-100
-            
-            def_idx = self.deficiency_model.predict(features_scaled)[0]
-            deficiency = self.label_encoder.inverse_transform([def_idx])[0]
-            
-            # Generate Heatmap
-            heatmap = self.generate_heatmap_base64(input_data.get('thermal_delta', 0))
-            
+            # 1. Extract values in the correct order
+            input_values = [float(data[feature]) for feature in self.feature_names]
+
+            # 2. THE FIX: Convert to DataFrame to avoid "UserWarning"
+            input_df = pd.DataFrame([input_values], columns=self.feature_names)
+
+            # 3. Scale the data
+            scaled_data = self.scaler.transform(input_df)
+
+            # 4. Generate Predictions
+            efficiency_score = self.efficiency_model.predict(scaled_data)[0]
+            deficiency_pred = self.deficiency_model.predict(scaled_data)[0]
+
             return {
                 'success': True,
-                'efficiency_score': round(eff_score, 2),
-                'deficiency': deficiency,
-                'heatmap_image': heatmap,
-                'recommendations': f"Apply specific fertilizer for {deficiency.replace('_', ' ')}.",
-                'stress_level': 'high' if eff_score < 50 else 'medium' if eff_score < 75 else 'low'
+                'efficiency_score': float(efficiency_score),
+                'deficiency': str(deficiency_pred),
+                'features_used': self.feature_names
             }
         except Exception as e:
             return {'success': False, 'error': str(e)}
-
-
