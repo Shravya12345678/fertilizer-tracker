@@ -413,6 +413,127 @@
 
 
 
+# import joblib
+# import numpy as np
+# import json
+# import os
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# import io
+# import base64
+
+# class FertilizerPredictor:
+#     def __init__(self, models_dir='../trained_models'):
+#         self.efficiency_model = None
+#         self.deficiency_model = None
+#         self.scaler = None
+#         self.label_encoder = None
+#         self.feature_names = None
+#         self.deficiency_classes = None
+        
+#         base_dir = os.path.dirname(os.path.abspath(__file__))
+#         self.models_path = os.path.join(base_dir, '..', 'trained_models')
+#         self.load_models()
+        
+#     def load_models(self):
+#         try:
+#             self.efficiency_model = joblib.load(os.path.join(self.models_path, 'efficiency_model.pkl'))
+#             self.deficiency_model = joblib.load(os.path.join(self.models_path, 'deficiency_model.pkl'))
+#             self.scaler = joblib.load(os.path.join(self.models_path, 'scaler.pkl'))
+#             self.label_encoder = joblib.load(os.path.join(self.models_path, 'label_encoder.pkl'))
+            
+#             info_path = os.path.join(self.models_path, 'model_info.json')
+#             with open(info_path, 'r') as f:
+#                 model_info = json.load(f)
+#                 self.feature_names = model_info['efficiency_features']
+#                 self.deficiency_classes = model_info['deficiency_classes']
+#             print("✅ All models, scalers, and metadata loaded successfully!")
+#         except Exception as e:
+#             print(f"❌ CRITICAL ERROR loading models: {str(e)}")
+#             raise e
+
+#     def generate_heatmap_base64(self, thermal_delta):
+#         """Generates a synthetic thermal heatmap based on the delta value"""
+#         # Create a 10x10 grid representing the field based on your temps
+#         data = np.random.randn(10, 10) * 0.4 + (25 + thermal_delta)
+        
+#         plt.figure(figsize=(5, 4))
+#         # Red-Yellow-Green (Reversed) color scheme for thermal stress
+#         sns.heatmap(data, cmap='RdYlGn_r', cbar=True, cbar_kws={'label': 'Temp °C'})
+#         plt.title(f"Thermal Distribution Map (Δ {thermal_delta}°C)")
+#         plt.axis('off')
+        
+#         buf = io.BytesIO()
+#         plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+#         plt.close()
+#         buf.seek(0)
+#         return f"data:image/png;base64,{base64.b64encode(buf.read()).decode('utf-8')}"
+
+#     def preprocess_input(self, input_data):
+#         features = [input_data[name] for name in self.feature_names]
+#         features_array = np.array(features).reshape(1, -1)
+#         return self.scaler.transform(features_array)
+    
+#     def predict_all(self, input_data):
+#         try:
+#             features_scaled = self.preprocess_input(input_data)
+            
+#             # 1. Prediction logic
+#             eff_score = max(0, min(100, self.efficiency_model.predict(features_scaled)[0]))
+#             deficiency_encoded = self.deficiency_model.predict(features_scaled)[0]
+#             deficiency = self.label_encoder.inverse_transform([deficiency_encoded])[0]
+            
+#             # 2. Get probabilities
+#             probabilities = self.deficiency_model.predict_proba(features_scaled)[0]
+#             prob_dict = {self.deficiency_classes[i]: round(float(prob), 4) for i, prob in enumerate(probabilities)}
+            
+#             # 3. Generate Visuals and Insights
+#             heatmap_image = self.generate_heatmap_base64(input_data.get('thermal_delta', 0))
+#             recommendations = self.generate_recommendations(eff_score, deficiency, input_data)
+#             stress_level = self.determine_stress_level(eff_score, input_data)
+            
+#             return {
+#                 'success': True,
+#                 'efficiency_score': round(float(eff_score), 2),
+#                 'deficiency': deficiency,
+#                 'deficiency_probabilities': prob_dict,
+#                 'heatmap_image': heatmap_image,
+#                 'stress_level': stress_level,
+#                 'recommendations': recommendations
+#             }
+#         except Exception as e:
+#             return {'success': False, 'error': str(e)}
+
+#     def generate_recommendations(self, score, deficiency, data):
+#         recs = []
+#         if score < 50:
+#             recs.append("⚠️ Critical: Low fertilizer efficiency. Soil may have high runoff or leaching.")
+#         elif score < 75:
+#             recs.append("✓ Moderate efficiency. Consider optimizing application timing.")
+#         else:
+#             recs.append("⭐ High efficiency! Current application matches plant uptake well.")
+            
+#         recs_map = {
+#             'N_deficient': "🌱 Nitrogen deficiency: Apply Urea or Ammonium Nitrate.",
+#             'P_deficient': "🌱 Phosphorus deficiency: Apply DAP or Superphosphate.",
+#             'K_deficient': "🌱 Potassium deficiency: Apply MOP (Potash).",
+#             'healthy': "✓ No major nutrient deficiencies detected."
+#         }
+#         recs.append(recs_map.get(deficiency, "Check local soil guidelines."))
+        
+#         if data.get('thermal_delta', 0) > 2.0:
+#             recs.append("🌡️ High Thermal Stress: Increase irrigation to support transpiration.")
+#         return recs
+
+#     def determine_stress_level(self, score, data):
+#         thermal = data.get('thermal_delta', 0)
+#         if score < 40 or thermal > 3: return 'high'
+#         if score < 70 or thermal > 1: return 'medium'
+#         return 'low'
+
+
+
+
 import joblib
 import numpy as np
 import json
@@ -442,91 +563,47 @@ class FertilizerPredictor:
             self.scaler = joblib.load(os.path.join(self.models_path, 'scaler.pkl'))
             self.label_encoder = joblib.load(os.path.join(self.models_path, 'label_encoder.pkl'))
             
-            info_path = os.path.join(self.models_path, 'model_info.json')
-            with open(info_path, 'r') as f:
+            with open(os.path.join(self.models_path, 'model_info.json'), 'r') as f:
                 model_info = json.load(f)
                 self.feature_names = model_info['efficiency_features']
                 self.deficiency_classes = model_info['deficiency_classes']
-            print("✅ All models, scalers, and metadata loaded successfully!")
+            print("✅ Models Loaded")
         except Exception as e:
-            print(f"❌ CRITICAL ERROR loading models: {str(e)}")
-            raise e
+            print(f"❌ Load Error: {str(e)}")
 
-    def generate_heatmap_base64(self, thermal_delta):
-        """Generates a synthetic thermal heatmap based on the delta value"""
-        # Create a 10x10 grid representing the field based on your temps
-        data = np.random.randn(10, 10) * 0.4 + (25 + thermal_delta)
-        
+    def generate_heatmap(self, delta):
+        # Create a synthetic 10x10 thermal grid
+        data = np.random.randn(10, 10) * 0.5 + (25 + delta)
         plt.figure(figsize=(5, 4))
-        # Red-Yellow-Green (Reversed) color scheme for thermal stress
-        sns.heatmap(data, cmap='RdYlGn_r', cbar=True, cbar_kws={'label': 'Temp °C'})
-        plt.title(f"Thermal Distribution Map (Δ {thermal_delta}°C)")
+        sns.heatmap(data, cmap='RdYlGn_r', cbar=True)
         plt.axis('off')
         
         buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+        plt.savefig(buf, format='png', bbox_inches='tight')
         plt.close()
-        buf.seek(0)
-        return f"data:image/png;base64,{base64.b64encode(buf.read()).decode('utf-8')}"
+        return f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
 
-    def preprocess_input(self, input_data):
-        features = [input_data[name] for name in self.feature_names]
-        features_array = np.array(features).reshape(1, -1)
-        return self.scaler.transform(features_array)
-    
-    def predict_all(self, input_data):
+    def predict_all(self, data):
         try:
-            features_scaled = self.preprocess_input(input_data)
+            feat_vals = [data[n] for n in self.feature_names]
+            scaled = self.scaler.transform([feat_vals])
             
-            # 1. Prediction logic
-            eff_score = max(0, min(100, self.efficiency_model.predict(features_scaled)[0]))
-            deficiency_encoded = self.deficiency_model.predict(features_scaled)[0]
-            deficiency = self.label_encoder.inverse_transform([deficiency_encoded])[0]
-            
-            # 2. Get probabilities
-            probabilities = self.deficiency_model.predict_proba(features_scaled)[0]
-            prob_dict = {self.deficiency_classes[i]: round(float(prob), 4) for i, prob in enumerate(probabilities)}
-            
-            # 3. Generate Visuals and Insights
-            heatmap_image = self.generate_heatmap_base64(input_data.get('thermal_delta', 0))
-            recommendations = self.generate_recommendations(eff_score, deficiency, input_data)
-            stress_level = self.determine_stress_level(eff_score, input_data)
+            eff = max(0, min(100, self.efficiency_model.predict(scaled)[0]))
+            def_idx = self.deficiency_model.predict(scaled)[0]
+            label = self.label_encoder.inverse_transform([def_idx])[0]
             
             return {
                 'success': True,
-                'efficiency_score': round(float(eff_score), 2),
-                'deficiency': deficiency,
-                'deficiency_probabilities': prob_dict,
-                'heatmap_image': heatmap_image,
-                'stress_level': stress_level,
-                'recommendations': recommendations
+                'efficiency_score': float(eff),
+                'deficiency': label,
+                'heatmap_image': self.generate_heatmap(data.get('thermal_delta', 0)),
+                'recommendations': self.get_recs(eff, label),
+                'stress_level': 'high' if eff < 50 else 'medium' if eff < 75 else 'low'
             }
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
-    def generate_recommendations(self, score, deficiency, data):
-        recs = []
-        if score < 50:
-            recs.append("⚠️ Critical: Low fertilizer efficiency. Soil may have high runoff or leaching.")
-        elif score < 75:
-            recs.append("✓ Moderate efficiency. Consider optimizing application timing.")
-        else:
-            recs.append("⭐ High efficiency! Current application matches plant uptake well.")
-            
-        recs_map = {
-            'N_deficient': "🌱 Nitrogen deficiency: Apply Urea or Ammonium Nitrate.",
-            'P_deficient': "🌱 Phosphorus deficiency: Apply DAP or Superphosphate.",
-            'K_deficient': "🌱 Potassium deficiency: Apply MOP (Potash).",
-            'healthy': "✓ No major nutrient deficiencies detected."
-        }
-        recs.append(recs_map.get(deficiency, "Check local soil guidelines."))
-        
-        if data.get('thermal_delta', 0) > 2.0:
-            recs.append("🌡️ High Thermal Stress: Increase irrigation to support transpiration.")
-        return recs
-
-    def determine_stress_level(self, score, data):
-        thermal = data.get('thermal_delta', 0)
-        if score < 40 or thermal > 3: return 'high'
-        if score < 70 or thermal > 1: return 'medium'
-        return 'low'
+    def get_recs(self, score, label):
+        recs = [f"Nutrient Status: {label.replace('_', ' ')}."]
+        if score < 60: recs.append("Action Required: Low efficiency detected. Optimize irrigation.")
+        return " ".join(recs)

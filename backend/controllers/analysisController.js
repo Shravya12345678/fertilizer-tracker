@@ -662,96 +662,135 @@
 
 
 
+// const axios = require('axios');
+// const ThermalData = require('../models/ThermalData');
+// const Crop = require('../models/Crop');
+
+// /**
+//  * @desc    Analyze thermal data using the Python ML service
+//  */
+// const analyzeThermalData = async (req, res) => {
+//   try {
+//     const { thermalDataId } = req.params;
+//     const thermalData = await ThermalData.findById(thermalDataId).populate('cropId', 'soilData cropType');
+
+//     if (!thermalData) {
+//       return res.status(404).json({ success: false, message: 'Thermal data not found' });
+//     }
+
+//     // Security check
+//     if (thermalData.userId.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'Not authorized' });
+//     }
+
+//     const mlInput = {
+//       N: Number(thermalData.cropId.soilData.N) || 0,
+//       P: Number(thermalData.cropId.soilData.P) || 0,
+//       K: Number(thermalData.cropId.soilData.K) || 0,
+//       temperature: Number(thermalData.environmental.temperature) || 0,
+//       humidity: Number(thermalData.environmental.humidity) || 0,
+//       ph: Number(thermalData.cropId.soilData.pH) || 7.0, 
+//       rainfall: Number(thermalData.environmental.rainfall) || 0,
+//       thermal_delta: Number(thermalData.thermalDelta) || 0,
+//       green_ratio: 0.75 
+//     };
+
+//     const ML_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:10000';
+    
+//     const mlResponse = await axios.post(`${ML_URL}/api/predict`, mlInput, { timeout: 45000 });
+//     const mlResult = mlResponse.data;
+
+//     // Save all results back to MongoDB
+//     thermalData.analysis = {
+//       efficiencyScore: mlResult.efficiency_score,
+//       deficiencies: [mlResult.deficiency],
+//       recommendations: Array.isArray(mlResult.recommendations) 
+//                         ? mlResult.recommendations.join('\n') 
+//                         : mlResult.recommendations,
+//       stressLevel: mlResult.stress_level,
+//       heatmapImage: mlResult.heatmap_image // NEW: Stores the Base64 string
+//     };
+
+//     thermalData.processed = true;
+//     thermalData.processingDetails = {
+//       processedAt: new Date(),
+//       modelVersion: '1.0.0',
+//       confidence: mlResult.deficiency_probabilities 
+//                   ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
+//                   : 0
+//     };
+
+//     await thermalData.save();
+
+//     res.json({
+//       success: true,
+//       message: 'Analysis completed successfully',
+//       data: thermalData
+//     });
+
+//   } catch (error) {
+//     const pythonError = error.response?.data?.error || error.message;
+//     console.error('❌ ANALYSIS ERROR:', pythonError);
+//     res.status(500).json({ success: false, message: 'AI Service Error', error: pythonError });
+//   }
+// };
+
+// /**
+//  * @desc    Get all completed analyses for the history tab
+//  */
+// const getAnalysisHistory = async (req, res) => {
+//   try {
+//     const history = await ThermalData.find({ userId: req.user.id, processed: true })
+//       .populate('cropId', 'cropName cropType')
+//       .sort({ 'processingDetails.processedAt': -1 });
+
+//     res.json({
+//       success: true,
+//       count: history.length,
+//       data: history
+//     });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Error fetching history', error: error.message });
+//   }
+// };
+
+// module.exports = { analyzeThermalData, getAnalysisHistory };
+
+
 const axios = require('axios');
 const ThermalData = require('../models/ThermalData');
-const Crop = require('../models/Crop');
 
-/**
- * @desc    Analyze thermal data using the Python ML service
- */
-const analyzeThermalData = async (req, res) => {
+exports.analyzeThermalData = async (req, res) => {
   try {
-    const { thermalDataId } = req.params;
-    const thermalData = await ThermalData.findById(thermalDataId).populate('cropId', 'soilData cropType');
+    const data = await ThermalData.findById(req.params.thermalDataId).populate('cropId');
+    if (!data) return res.status(404).json({ success: false, message: 'Not found' });
 
-    if (!thermalData) {
-      return res.status(404).json({ success: false, message: 'Thermal data not found' });
-    }
-
-    // Security check
-    if (thermalData.userId.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    const mlInput = {
-      N: Number(thermalData.cropId.soilData.N) || 0,
-      P: Number(thermalData.cropId.soilData.P) || 0,
-      K: Number(thermalData.cropId.soilData.K) || 0,
-      temperature: Number(thermalData.environmental.temperature) || 0,
-      humidity: Number(thermalData.environmental.humidity) || 0,
-      ph: Number(thermalData.cropId.soilData.pH) || 7.0, 
-      rainfall: Number(thermalData.environmental.rainfall) || 0,
-      thermal_delta: Number(thermalData.thermalDelta) || 0,
-      green_ratio: 0.75 
+    const payload = {
+      N: data.cropId.soilData.N, P: data.cropId.soilData.P, K: data.cropId.soilData.K,
+      temperature: data.environmental.temperature, humidity: data.environmental.humidity,
+      ph: data.cropId.soilData.pH, rainfall: data.environmental.rainfall,
+      thermal_delta: data.thermalDelta, green_ratio: 0.75
     };
 
-    const ML_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:10000';
+    const mlRes = await axios.post(`${process.env.ML_SERVICE_URL}/api/predict`, payload);
     
-    const mlResponse = await axios.post(`${ML_URL}/api/predict`, mlInput, { timeout: 45000 });
-    const mlResult = mlResponse.data;
-
-    // Save all results back to MongoDB
-    thermalData.analysis = {
-      efficiencyScore: mlResult.efficiency_score,
-      deficiencies: [mlResult.deficiency],
-      recommendations: Array.isArray(mlResult.recommendations) 
-                        ? mlResult.recommendations.join('\n') 
-                        : mlResult.recommendations,
-      stressLevel: mlResult.stress_level,
-      heatmapImage: mlResult.heatmap_image // NEW: Stores the Base64 string
+    data.analysis = {
+      efficiencyScore: mlRes.data.efficiency_score,
+      deficiencies: [mlRes.data.deficiency],
+      recommendations: mlRes.data.recommendations,
+      stressLevel: mlRes.data.stress_level,
+      heatmapImage: mlRes.data.heatmap_image
     };
+    data.processed = true;
+    await data.save();
 
-    thermalData.processed = true;
-    thermalData.processingDetails = {
-      processedAt: new Date(),
-      modelVersion: '1.0.0',
-      confidence: mlResult.deficiency_probabilities 
-                  ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
-                  : 0
-    };
-
-    await thermalData.save();
-
-    res.json({
-      success: true,
-      message: 'Analysis completed successfully',
-      data: thermalData
-    });
-
+    res.json({ success: true, data });
   } catch (error) {
-    const pythonError = error.response?.data?.error || error.message;
-    console.error('❌ ANALYSIS ERROR:', pythonError);
-    res.status(500).json({ success: false, message: 'AI Service Error', error: pythonError });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-/**
- * @desc    Get all completed analyses for the history tab
- */
-const getAnalysisHistory = async (req, res) => {
-  try {
-    const history = await ThermalData.find({ userId: req.user.id, processed: true })
-      .populate('cropId', 'cropName cropType')
-      .sort({ 'processingDetails.processedAt': -1 });
-
-    res.json({
-      success: true,
-      count: history.length,
-      data: history
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching history', error: error.message });
-  }
+exports.getAnalysisHistory = async (req, res) => {
+  const history = await ThermalData.find({ userId: req.user.id, processed: true }).sort({ createdAt: -1 });
+  res.json({ success: true, data: history });
 };
-
-module.exports = { analyzeThermalData, getAnalysisHistory };
