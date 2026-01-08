@@ -266,4 +266,33 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    // We use findOneAndDelete to ensure the user can only delete their OWN crops
+    const crop = await Crop.findOneAndDelete({ 
+      _id: req.params.id, 
+      userId: req.user.id 
+    });
+
+    if (!crop) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Crop not found or unauthorized' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Crop deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Delete crop error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error deleting crop', 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
