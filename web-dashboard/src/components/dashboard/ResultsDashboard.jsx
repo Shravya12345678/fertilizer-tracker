@@ -908,7 +908,8 @@
 import React, { useState, useEffect } from 'react';
 import { thermalAPI } from '../../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import jsPDF from 'jsPDF';
+//import jsPDF from 'jsPDF';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { toast } from 'react-toastify';
 import emailjs from '@emailjs/browser';

@@ -541,23 +541,138 @@
 // module.exports = { analyzeThermalData, getAnalysisHistory };
 
 
+// const axios = require('axios');
+// const ThermalData = require('../models/ThermalData');
+// const Crop = require('../models/Crop');
+
+// /**
+//  * @desc    Analyze thermal data using the Python ML service
+//  * @route   POST /api/analysis/thermal/:thermalDataId
+//  */
+// const analyzeThermalData = async (req, res) => {
+//   try {
+//     const { thermalDataId } = req.params;
+
+//     console.log('🔍 Searching for Thermal Data ID:', thermalDataId);
+
+//     // 1. Fetch data and populate crop info
+//     const thermalData = await ThermalData.findById(thermalDataId)
+//       .populate('cropId', 'soilData cropType');
+
+//     if (!thermalData) {
+//       return res.status(404).json({ success: false, message: 'Thermal data not found' });
+//     }
+
+//     // Security check
+//     if (thermalData.userId.toString() !== req.user.id) {
+//       return res.status(403).json({ success: false, message: 'Not authorized' });
+//     }
+
+//     // 2. Prepare the payload exactly as predict.py test_input expects
+//     const mlInput = {
+//       N: Number(thermalData.cropId.soilData.N) || 0,
+//       P: Number(thermalData.cropId.soilData.P) || 0,
+//       K: Number(thermalData.cropId.soilData.K) || 0,
+//       temperature: Number(thermalData.environmental.temperature) || 0,
+//       humidity: Number(thermalData.environmental.humidity) || 0,
+//       ph: Number(thermalData.cropId.soilData.pH) || 7.0, 
+//       rainfall: Number(thermalData.environmental.rainfall) || 0,
+//       thermal_delta: Number(thermalData.thermalDelta) || 0,
+//       green_ratio: 0.75 // Standard ratio from your test script
+//     };
+
+//     const ML_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:10000';
+    
+//     console.log('📡 Sending request to AI Service:', `${ML_URL}/api/predict`);
+
+//     // 3. Call ML Service
+//     const mlResponse = await axios.post(
+//       `${ML_URL}/api/predict`,
+//       mlInput,
+//       { timeout: 45000 }
+//     );
+
+//     const mlResult = mlResponse.data;
+//     console.log('🤖 AI Response Received');
+
+//     // 4. Update the MongoDB record
+//     thermalData.analysis = {
+//       efficiencyScore: mlResult.efficiency_score,
+//       deficiencies: [mlResult.deficiency],
+//       recommendations: Array.isArray(mlResult.recommendations) 
+//                         ? mlResult.recommendations.join('\n') 
+//                         : mlResult.recommendations,
+//       stressLevel: mlResult.stress_level
+//     };
+
+//     thermalData.processed = true;
+//     thermalData.processingDetails = {
+//       processedAt: new Date(),
+//       modelVersion: '1.0.0',
+//       confidence: mlResult.deficiency_probabilities 
+//                   ? mlResult.deficiency_probabilities[mlResult.deficiency] * 100 
+//                   : 0
+//     };
+
+//     await thermalData.save();
+
+//     res.json({
+//       success: true,
+//       message: 'Analysis completed successfully',
+//       data: thermalData
+//     });
+
+//   } catch (error) {
+//     // CAPTURE THE PYTHON ERROR MESSAGE
+//     const pythonError = error.response?.data?.error || error.message;
+//     console.error('❌ ANALYSIS ERROR:', pythonError);
+
+//     res.status(500).json({
+//       success: false,
+//       message: 'AI Service Error',
+//       error: pythonError
+//     });
+//   }
+// };
+
+// /**
+//  * @desc    Get all completed analyses
+//  */
+// const getAnalysisHistory = async (req, res) => {
+//   try {
+//     const history = await ThermalData.find({ userId: req.user.id, processed: true })
+//       .populate('cropId', 'cropName cropType')
+//       .sort({ 'processingDetails.processedAt': -1 });
+
+//     res.json({
+//       success: true,
+//       count: history.length,
+//       data: history
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error fetching history',
+//       error: error.message
+//     });
+//   }
+// };
+
+// module.exports = { analyzeThermalData, getAnalysisHistory };
+
+
+
 const axios = require('axios');
 const ThermalData = require('../models/ThermalData');
 const Crop = require('../models/Crop');
 
 /**
  * @desc    Analyze thermal data using the Python ML service
- * @route   POST /api/analysis/thermal/:thermalDataId
  */
 const analyzeThermalData = async (req, res) => {
   try {
     const { thermalDataId } = req.params;
-
-    console.log('🔍 Searching for Thermal Data ID:', thermalDataId);
-
-    // 1. Fetch data and populate crop info
-    const thermalData = await ThermalData.findById(thermalDataId)
-      .populate('cropId', 'soilData cropType');
+    const thermalData = await ThermalData.findById(thermalDataId).populate('cropId', 'soilData cropType');
 
     if (!thermalData) {
       return res.status(404).json({ success: false, message: 'Thermal data not found' });
@@ -568,7 +683,6 @@ const analyzeThermalData = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    // 2. Prepare the payload exactly as predict.py test_input expects
     const mlInput = {
       N: Number(thermalData.cropId.soilData.N) || 0,
       P: Number(thermalData.cropId.soilData.P) || 0,
@@ -578,31 +692,23 @@ const analyzeThermalData = async (req, res) => {
       ph: Number(thermalData.cropId.soilData.pH) || 7.0, 
       rainfall: Number(thermalData.environmental.rainfall) || 0,
       thermal_delta: Number(thermalData.thermalDelta) || 0,
-      green_ratio: 0.75 // Standard ratio from your test script
+      green_ratio: 0.75 
     };
 
     const ML_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:10000';
     
-    console.log('📡 Sending request to AI Service:', `${ML_URL}/api/predict`);
-
-    // 3. Call ML Service
-    const mlResponse = await axios.post(
-      `${ML_URL}/api/predict`,
-      mlInput,
-      { timeout: 45000 }
-    );
-
+    const mlResponse = await axios.post(`${ML_URL}/api/predict`, mlInput, { timeout: 45000 });
     const mlResult = mlResponse.data;
-    console.log('🤖 AI Response Received');
 
-    // 4. Update the MongoDB record
+    // Save all results back to MongoDB
     thermalData.analysis = {
       efficiencyScore: mlResult.efficiency_score,
       deficiencies: [mlResult.deficiency],
       recommendations: Array.isArray(mlResult.recommendations) 
                         ? mlResult.recommendations.join('\n') 
                         : mlResult.recommendations,
-      stressLevel: mlResult.stress_level
+      stressLevel: mlResult.stress_level,
+      heatmapImage: mlResult.heatmap_image // NEW: Stores the Base64 string
     };
 
     thermalData.processed = true;
@@ -623,20 +729,14 @@ const analyzeThermalData = async (req, res) => {
     });
 
   } catch (error) {
-    // CAPTURE THE PYTHON ERROR MESSAGE
     const pythonError = error.response?.data?.error || error.message;
     console.error('❌ ANALYSIS ERROR:', pythonError);
-
-    res.status(500).json({
-      success: false,
-      message: 'AI Service Error',
-      error: pythonError
-    });
+    res.status(500).json({ success: false, message: 'AI Service Error', error: pythonError });
   }
 };
 
 /**
- * @desc    Get all completed analyses
+ * @desc    Get all completed analyses for the history tab
  */
 const getAnalysisHistory = async (req, res) => {
   try {
@@ -650,11 +750,7 @@ const getAnalysisHistory = async (req, res) => {
       data: history
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching history',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Error fetching history', error: error.message });
   }
 };
 
