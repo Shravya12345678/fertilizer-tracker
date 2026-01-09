@@ -203,15 +203,15 @@ An AI-powered agricultural decision support system that analyzes crop response t
 
 ## 📋 Table of Contents
 
-* [Features](https://www.google.com/search?q=%23-features)
-* [Tech Stack](https://www.google.com/search?q=%23-tech-stack)
-* [Project Structure](https://www.google.com/search?q=%23-project-structure)
-* [Prerequisites](https://www.google.com/search?q=%23-prerequisites)
-* [Installation (Local)](https://www.google.com/search?q=%23-installation-local)
-* [Usage & Demo Data](https://www.google.com/search?q=%23-usage--demo-data)
-* [ML Models](https://www.google.com/search?q=%23-ml-models)
-* [Cloud Deployment (Production)](https://www.google.com/search?q=%23-cloud-deployment-production)
-* [Author](https://www.google.com/search?q=%23-author)
+* [Features]
+* [Tech Stack]
+* [Project Structure]
+* [Prerequisites]
+* [Installation (Local)]
+* [Usage & Demo Data]
+* [ML Models]
+* [Cloud Deployment (Production)]
+* [Author]
 
 ---
 
