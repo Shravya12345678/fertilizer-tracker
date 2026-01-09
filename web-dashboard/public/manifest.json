@@ -1,6 +1,8 @@
+
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Fertilizer Tracker",
+  "name": "Thermal-Based Fertilizer Efficiency Tracker",
+  "description": "Track fertilizer efficiency using thermal analysis",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +22,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#16a34a",
   "background_color": "#ffffff"
 }
