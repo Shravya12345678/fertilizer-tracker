@@ -1,4 +1,4 @@
-# 🌾 Thermal-Based Fertilizer Efficiency Tracker
+<!-- # 🌾 Thermal-Based Fertilizer Efficiency Tracker
 
 AI-powered agricultural decision support system that analyzes crop response to fertilizer using thermal signatures and machine learning.
 
@@ -194,5 +194,188 @@ This project is licensed under the MIT License.
 - SRS Documentation Team
 - Open-source community
 - Kaggle for datasets
-- Stack Overflow community
+- Stack Overflow community -->
+
+
+# 🌾 Thermal-Based Fertilizer Efficiency Tracker
+
+An AI-powered agricultural decision support system that analyzes crop response to fertilizer using thermal signatures, environmental data, and machine learning. This project bridges the gap between high-tech thermal imaging and practical field application.
+
+## 📋 Table of Contents
+
+* [Features](https://www.google.com/search?q=%23-features)
+* [Tech Stack](https://www.google.com/search?q=%23-tech-stack)
+* [Project Structure](https://www.google.com/search?q=%23-project-structure)
+* [Prerequisites](https://www.google.com/search?q=%23-prerequisites)
+* [Installation (Local)](https://www.google.com/search?q=%23-installation-local)
+* [Usage & Demo Data](https://www.google.com/search?q=%23-usage--demo-data)
+* [ML Models](https://www.google.com/search?q=%23-ml-models)
+* [Cloud Deployment (Production)](https://www.google.com/search?q=%23-cloud-deployment-production)
+* [Author](https://www.google.com/search?q=%23-author)
+
+---
+
+## ✨ Features
+
+* 🌡️ **Thermal Data Tracking**: Record and analyze before/after fertilizer application temperatures to monitor transpiration cooling.
+* 🤖 **AI Analysis**: ML-powered efficiency prediction based on thermal deltas and environmental variables.
+* 🎯 **Deficiency Detection**: Identify specific N, P, or K deficiencies and receive actionable AI-generated recommendations.
+* 📊 **Interactive Dashboard**: Real-time visualizations and historical analytics for multiple fields.
+* 📱 **Native Mobile App**: A dedicated **React Native** application for on-the-go data entry and analysis in the field.
+* 🔐 **Secure Authentication**: Robust JWT-based system to keep farmer data private and secure.
+* 📄 **Report Export**: Generate and download detailed PDF analysis reports for offline records.
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend & Mobile
+
+* **Web**: React.js 18 (Functional Components, Hooks)
+* **Mobile**: **React Native (via Expo)** for cross-platform iOS and Android support.
+* **Styling**: **Custom CSS** (Zero framework dependencies for maximum stability and performance).
+* **Icons**: Lucide React & Lucide React Native.
+
+### Backend & AI
+
+* **Server**: Node.js & Express (API Architecture).
+* **Database**: MongoDB & Mongoose (NoSQL).
+* **ML Service**: Python 3.12 with Flask API.
+* **Data Science**: Scikit-learn (Random Forest), NumPy, Pandas.
+
+---
+
+## 📂 Project Structure
+
+Based on the repository organization:
+
+```text
+fertilizer-tracker/
+├── backend/            # Express API & MongoDB Models
+├── ml-service/         # Python Flask AI engine
+├── web-dashboard/      # React.js Web Frontend
+├── mobile-app/         # React Native Mobile Application
+└── datasets/           # Training data for ML models
+
+```
+
+---
+
+## 🚀 Installation (Local)
+
+### 1. Backend Setup
+
+```bash
+cd backend
+npm install
+# Create .env with MONGODB_URI, JWT_SECRET, and PORT
+npm run dev
+
+```
+
+### 2. ML Service Setup
+
+```bash
+cd ml-service
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cd src
+python app.py
+
+```
+
+### 3. Web Dashboard Setup
+
+```bash
+cd web-dashboard
+npm install
+npm start
+
+```
+
+### 4. Mobile App Setup (React Native)
+
+```bash
+cd mobile-app
+npm install
+npx expo start
+# Scan the QR code with the 'Expo Go' app on your phone
+
+```
+
+---
+
+## 🎮 Usage & Demo Data
+
+### Generating Demo Data
+
+To explore the dashboard with pre-filled analytics (multiple crops and measurements), run the custom seeder script:
+
+```bash
+cd backend
+node scripts/createDemoData.js
+
+```
+
+### Demo Credentials
+
+* **Email:** `demo@fertilizer-tracker.com`
+* **Password:** `demo123`
+
+---
+
+## 🤖 ML Models
+
+### Efficiency Predictor
+
+* **Model**: Random Forest Regressor.
+* **Input**: N, P, K, humidity, temperature, pH, rainfall, thermal_delta.
+* **Output**: Efficiency score .
+
+### Deficiency Classifier
+
+* **Model**: Random Forest Classifier.
+* **Classes**: Balanced, N_deficient, P_deficient, K_deficient.
+* **Performance**:  Accuracy on validation sets.
+
+---
+
+## 🌐 Cloud Deployment (Production)
+
+This project is configured for seamless deployment across Render and Vercel.
+
+### 1. ML Service (Render)
+
+* **Root Directory**: `ml-service`.
+* **Build Command**: `pip install -r requirements.txt`.
+* **Start Command**: `python src/app.py`.
+* **Environment Variable**: `PYTHON_VERSION`: `3.11.10`.
+
+### 2. Backend API (Render)
+
+* **Root Directory**: `backend`.
+* **Build Command**: `npm install`.
+* **Start Command**: `node server.js`.
+* **Required Variables**: `MONGODB_URI`, `JWT_SECRET`, `ML_SERVICE_URL`.
+
+### 3. Web Dashboard (Vercel)
+
+* **Root Directory**: `web-dashboard`.
+* **Node.js Version**: `20.x`.
+* **Environment Variables**: `API_BASE_URL`, `REACT_APP_EMAILJS_PUBLIC_KEY`.
+
+---
+
+## 📸 Screenshots
+
+---
+
+## 👨‍💻 Author
+
+**Shravya Shetty**
+
+* **GitHub**: [Shravya12345678](https://github.com/Shravya12345678)
+* **LinkedIn**: [Shravya Shetty](https://www.linkedin.com/in/shravya-shetty04/)
+* **Email**: [shravya2004n@gmail.com](mailto:shravya2004n@gmail.com)
 
