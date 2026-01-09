@@ -369,7 +369,11 @@ This project is configured for seamless deployment across Render and Vercel.
 
 ## 📸 Screenshots
 
+![signinn](https://github.com/user-attachments/assets/71387209-94a1-45fa-adc0-88ef9f83efd0)
+
+![ignup](https://github.com/user-attachments/assets/e2f2b07a-dca7-49e2-917f-3bb41d8a5eae)
 ---
+
 
 ## 👨‍💻 Author
 
