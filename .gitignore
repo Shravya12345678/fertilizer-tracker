@@ -123,3 +123,23 @@ tmp/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ===================================
+# Mobile App (Expo/React Native)
+# ===================================
+mobile-app/node_modules/
+mobile-app/.expo/
+mobile-app/web-build/
+mobile-app/dist/
+
+# Android/iOS Native signing keys (CRITICAL SECURITY)
+*.jks
+*.p12
+*.key
+*.mobileprovision
+*.keystore
+
+# EAS build local logs
+mobile-app/npm-debug.*
+mobile-app/yarn-debug.*
+mobile-app/yarn-error.*
