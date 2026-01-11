@@ -117,23 +117,3 @@
 3. **Problem-Solving**: Handled CORS, timeouts, data flow
 4. **Production Deployment**: Real-world hosting challenges
 
----
-
-## 👨‍💻 Team & Acknowledgments
-
-**Developer**: Shravya
-**Duration**: 15 days
-**Institution**: NMAMIT
-**Course**: B-Tech
-
-**Special Thanks**: Mentors, SRS Document, Open-source community
-
----
-
-## 🙏 Thank You!
-
-### Questions?
-
-**Demo**: https://fertilizer-tracker.vercel.app/
-**Code**: https://github.com/Shravya12345678/fertilizer-tracker
-**Email**: shravya2004n@gmail.com

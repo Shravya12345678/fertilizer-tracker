@@ -1,68 +1,4 @@
-// import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
 
-// const ThermalForm = () => {
-//   const navigate = useNavigate();
-//   const [formData, setFormData] = useState({ cropId: '', notes: '' });
-//   const [file, setFile] = useState(null);
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     console.log("Saving data:", formData, file);
-//     // Logic to send to backend goes here
-//     alert("Analysis submitted! Redirecting to dashboard...");
-//     navigate('/dashboard');
-//   };
-
-//   return (
-//     <div className="container" style={{ maxWidth: '600px' }}>
-//       <div className="card">
-//         <h2 style={{ marginBottom: '20px', color: '#111827' }}>New Thermal Analysis</h2>
-//         <form onSubmit={handleSubmit}>
-//           <div style={{ marginBottom: '15px' }}>
-//             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Select Crop</label>
-//             <select 
-//               style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-//               onChange={(e) => setFormData({...formData, cropId: e.target.value})}
-//               required
-//             >
-//               <option value="">-- Select a field --</option>
-//               <option value="1">Main Wheat Field</option>
-//               <option value="2">East Potato Plot</option>
-//             </select>
-//           </div>
-
-//           <div style={{ marginBottom: '15px' }}>
-//             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Thermal Image</label>
-//             <input 
-//               type="file" 
-//               accept="image/*"
-//               style={{ width: '100%', padding: '10px', background: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db' }}
-//               onChange={(e) => setFile(e.target.files[0])}
-//               required
-//             />
-//           </div>
-
-//           <div style={{ marginBottom: '20px' }}>
-//             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Notes</label>
-//             <textarea 
-//               rows="3"
-//               style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-//               placeholder="Observation notes..."
-//               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-//             ></textarea>
-//           </div>
-
-//           <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-//             Start Analysis Pipeline
-//           </button>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ThermalForm;
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -135,22 +71,7 @@ const ThermalForm = () => {
   }
 };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
 
-  //   try {
-  //     await thermalAPI.create(formData);
-  //     alert('Thermal data added successfully!');
-  //     // Navigate back to the specific crop details page after saving
-  //     navigate(`/crops/${formData.cropId}`);
-  //   } catch (error) {
-  //     console.error('Error creating thermal data:', error);
-  //     alert('Failed to add thermal data: ' + (error.response?.data?.message || 'Unknown error'));
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
