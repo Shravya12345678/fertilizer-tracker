@@ -2,11 +2,11 @@
 
 # 🌾 Thermal-Based Fertilizer Efficiency Tracker (CropSaver AI)
 
-An AI-powered agricultural decision support system that analyzes crop response to fertilizer using thermal signatures, environmental data, and machine learning. This project bridges the gap between high-tech thermal imaging and practical field application.
+An AI-powered agricultural decision support system that analyzes crop response to fertilizer using thermal signatures, environmental data, and machine learning. 
 
 ## 🔗 Live Project Links
 * **📱 Mobile App (Android APK):** [Download & Install Here] https://expo.dev/accounts/shravya2004/projects/mobile-app/builds/66119314-ad32-4011-bec9-3ab28b820235
-* **🎬 Video Demo :** 
+* **🎬 Video Demo :** https://youtu.be/Z7BYalxKY5Y?si=1b_DKBgnvhNsLRz
 * **💻 Live Web Dashboard:** https://fertilizer-tracker.vercel.app/
 
 ---
@@ -117,7 +117,7 @@ The mobile component is a standalone Android application optimized for field use
 ### How to Install (APK)
 
 1. **Build**: The app is built using EAS: `eas build -p android --profile preview`.
-2. **Download**: Scan the generated QR code or download the `.apk` file from the build link.
+2. **Download**: Scan the generated QR code or download the `.apk` file from the build link(https://expo.dev/accounts/shravya2004/projects/mobile-app/builds/66119314-ad32-4011-bec9-3ab28b820235).
 3. **Security**: Since this is a custom-signed app, select **"Install Anyway"** if prompted by Android Play Protect during installation.
 
 ---
